@@ -56,4 +56,5 @@ for step in range(args.steps):
         res = eq.sweep(dt=dt)
     times.append(time.time() - start)
 
+print(args.nx, args.ny, args.steps, args.sweeps, args.solver, sep="\t", end="\t")
 print("\t".join([str(t) for t in times]))
