@@ -1,21 +1,22 @@
 #!/bin/bash
 
-#SBATCH --exclusive
-#SBATCH --array=0-6
-#SBATCH --time=12:00
+partition=$1
+scaling=$2
+script=$3
+nx=$4
+ny=$5
 
-scaling=$1
-script=$2
-nx=$3
-ny=$4
+for n in {0..6}; do
+    ntasks=$((2 ** n));
 
-ntasks=$((2 ** SLURM_ARRAY_TASK_ID))
-if  [ $scaling == "weak" ]; then
-    ny=$((ny * ntasks))
-fi
+    if  [ $scaling == "weak" ]; then
+        ny=$((ny * ntasks))
+    fi
 
-jobname=$scaling-$nx-$ny-$ntasks
+    jobname=$scaling-$nx-$ny-$ntasks
 
-sbatch --partition=$SLURM_JOB_PARTITION --job-name=$jobname --ntasks=$ntasks --ntasks-per-core=2 \
-  --output=${PWD}/results/$SLURM_JOB_PARTITION/$jobname.slurmout \
-  jobscript $script $nx $ny
+    sbatch --partition=$partition --exclusive --job-name=$jobname \
+      --ntasks=$ntasks --ntasks-per-core=2 \
+      --output=${PWD}/results/$partition/$jobname.slurmout \
+      jobscript $script $nx $ny
+done
