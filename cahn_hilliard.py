@@ -69,4 +69,4 @@ if fp.parallel.procID == 0:
     # write run info
     with open(args.output, 'a') as f:
         stats = [fp.parallel.Nproc, args.nx, args.ny, args.steps, args.sweeps, args.solver]
-        f.write("\t".join(stats + times) + "\n")
+        f.write("\t".join([str(v) for v in stats + times]) + "\n")
