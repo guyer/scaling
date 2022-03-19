@@ -1,0 +1,12 @@
+#!/bin/bash
+
+eval "$(/tmp/guyer/mambaforge/bin/conda shell.bash hook)"
+conda activate fipy3k
+echo "Using $SLURM_NTASKS cores"
+echo `which conda`
+
+#OMP_NUM_THREADS=1 `which mpirun` -np $SLURM_NTASKS python cahn_hilliard.py --nx=$((2 ** SLURM_NTASKS)) \
+#  --ny=$((2 ** SLURM_NTASKS)) --solver=petsc
+OMP_NUM_THREADS=1 `which mpirun` -np $SLURM_NTASKS python cahn_hilliard.py \
+  --nx=1000 --ny=1000 --solver=petsc
+
