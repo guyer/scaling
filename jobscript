@@ -13,4 +13,4 @@ nx=$2
 ny=$3
 
 OMP_NUM_THREADS=1 `which mpirun` -np $SLURM_NTASKS python $script \
-  --nx=$nx --ny=$ny --solver=petsc --output="results/$SBATCH_PARTITION/${script}.tsv"
+  --nx=$nx --ny=$ny --solver=petsc --output="results/$SLURM_JOB_PARTITION/${script}.tsv"

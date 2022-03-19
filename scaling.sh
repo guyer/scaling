@@ -15,6 +15,6 @@ fi
 
 jobname=$scaling-$nx-$ny-$ntasks
 
-sbatch --partition=$SBATCH_PARTITION --job-name=$jobname --ntasks=$ntasks --ntasks-per-core=2 \
-  --output=${PWD}/results/$SBATCH_PARTITION/$jobname.slurmout \
+sbatch --partition=$SLURM_JOB_PARTITION --job-name=$jobname --ntasks=$ntasks --ntasks-per-core=2 \
+  --output=${PWD}/results/$SLURM_JOB_PARTITION/$jobname.slurmout \
   jobscript $script $nx $ny
