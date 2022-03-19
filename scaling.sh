@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-#SBATCH --array=0-6%1
+#SBATCH --exclusive
+#SBATCH --array=0-6
 #SBATCH --time=12:00
 
 scaling=$1
