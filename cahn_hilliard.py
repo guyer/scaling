@@ -17,6 +17,8 @@ parser.add_argument('--sweeps', dest='sweeps', type=int, default=5,
                     help='number of sweeps (default: 5)')
 parser.add_argument('--solver', dest='solver', type=str, default="petsc",
                     help='solver suite (default: "petsc")')
+parser.add_argument('--output', dest='output', type=str, default="output.tsv",
+                    help='file in which to append output statistics (default: "output.tsv")')
 
 args = parser.parse_args()
 
@@ -57,5 +59,14 @@ for step in range(args.steps):
     times.append(time.time() - start)
 
 if fp.parallel.procID == 0:
-    print(fp.parallel.Nproc, args.nx, args.ny, args.steps, args.sweeps, args.solver, sep="\t", end="\t")
-    print("\t".join([str(t) for t in times]))
+    # write headers if new file
+    if not os.path.exists(args.output):
+        with open(args.output, 'r') as f:
+        headers = ["nproc", "nx", "ny", "steps", "sweeps", "solver"]
+        headers += ["elapsed{}".format(n) for n in range(args.steps)]
+        f.write("\t".join(headers) + "\n")
+
+    # write run info
+    with open(args.output, 'a') as f:
+        stats = [fp.parallel.Nproc, args.nx, args.ny, args.steps, args.sweeps, args.solver]
+        f.write("\t".join(stats + times) + "\n")
