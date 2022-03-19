@@ -62,9 +62,9 @@ if fp.parallel.procID == 0:
     # write headers if new file
     if not os.path.exists(args.output):
         with open(args.output, 'r') as f:
-        headers = ["nproc", "nx", "ny", "steps", "sweeps", "solver"]
-        headers += ["elapsed{}".format(n) for n in range(args.steps)]
-        f.write("\t".join(headers) + "\n")
+            headers = ["nproc", "nx", "ny", "steps", "sweeps", "solver"]
+            headers += ["elapsed{}".format(n) for n in range(args.steps)]
+            f.write("\t".join(headers) + "\n")
 
     # write run info
     with open(args.output, 'a') as f:
