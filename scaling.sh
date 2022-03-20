@@ -13,7 +13,7 @@ for n in {0..6}; do
         ny=$((ny * ntasks))
     fi
 
-    jobname=$scaling-$nx-$ny-$ntasks
+    jobname=$scaling-$script-$nx-$ny-$ntasks
 
     sbatch --partition=$partition --exclusive --job-name=$jobname \
       --ntasks=$ntasks --ntasks-per-core=2 \
