@@ -17,6 +17,8 @@ parser.add_argument('--sweeps', dest='sweeps', type=int, default=5,
                     help='number of sweeps (default: 5)')
 parser.add_argument('--solver', dest='solver', type=str, default="petsc",
                     help='solver suite (default: "petsc")')
+parser.add_argument('--output', dest='output', type=str, default="output.tsv",
+                    help='file in which to append output statistics (default: "output.tsv")')
 
 args = parser.parse_args()
 
@@ -37,9 +39,6 @@ for seed in range(10):
 
     phi.setValue(1., where=(mesh.x - x0)**2 + (mesh.y - y0)**2 < r0**2)
 
-viewer = fp.Viewer(vars=phi, datamin=0., datamax=1.)
-viewer.plot()
-
 D = 1.
 eq = fp.TransientTerm(var=phi) == fp.DiffusionTerm(coeff=D, var=phi)
 
@@ -49,8 +48,18 @@ dt = 1.
 for step in range(args.steps):
     for sweep in range(args.sweeps):
         res = eq.sweep(dt=dt)
-    viewer.plot()
     times.append(time.time() - start)
 
-print(args.nx, args.ny, args.steps, args.sweeps, args.solver, sep="\t", end="\t")
-print("\t".join([str(t) for t in times]))
+if fp.parallel.procID == 0:
+    # write headers if new file
+    if not os.path.exists(args.output):
+        with open(args.output, 'w') as f:
+            headers = ["nproc", "nx", "ny", "steps", "sweeps", "solver"]
+            headers += ["elapsed{}".format(n) for n in range(args.steps)]
+            f.write("\t".join(headers) + "\n")
+
+    # write run info
+    with open(args.output, 'a') as f:
+        stats = [fp.parallel.Nproc, args.nx, args.ny, args.steps, args.sweeps, args.solver]
+        f.write("\t".join([str(v) for v in stats + times]) + "\n")
+
