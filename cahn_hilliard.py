@@ -6,7 +6,7 @@ start = time.time()
 
 times = []
 
-parser = argparse.ArgumentParser(description='Solve a Cahn-Hillard problem')
+parser = argparse.ArgumentParser(description='Solve a Cahn-Hilliard problem')
 parser.add_argument('--nx', dest='nx', type=int, default=100,
                     help='number of cells in x direction (default: 100)')
 parser.add_argument('--ny', dest='ny', type=int, default=100,
