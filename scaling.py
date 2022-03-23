@@ -61,4 +61,4 @@ for n in range(args.log2nodes + 1):
     )
   
     print(s)
-    subprocess.run(s)
+    subprocess.run(s, shell=True)
