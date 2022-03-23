@@ -48,7 +48,7 @@ for n in range(args.log2nodes + 1):
         tN = max(tN, args.t_min)
             
         # format run time for sbatch as d-h:mm:ss
-        time_str = f"--time={str(timedelta(seconds=tN)).replace(' day, ', '-')}"
+        time_str = f"--time=\"{str(timedelta(seconds=tN)).replace(' day, ', '-')}\""
     else:
         time_str = ""    
     
