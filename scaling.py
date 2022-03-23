@@ -45,7 +45,7 @@ for n in range(args.log2nodes + 1):
         else:
             tN = args.t1 / (args.parallel_efficiency * ntasks)
         
-        tN = max(tN, args.t_min)
+        tN = round(max(tN, args.t_min))
             
         # format run time for sbatch as d-h:mm:ss
         time_str = f"--time=\"{str(timedelta(seconds=tN)).replace(' day, ', '-')}\""
