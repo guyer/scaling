@@ -58,7 +58,7 @@ for n in range(args.log2nodes + 1):
             
         # format run time for sbatch as d-h:mm:ss
         slurm_time = str(timedelta(seconds=tN)).replace(" day, ", "-")
-        time_option = ['--time="{}"'.format(slurm_time)]
+        time_option = ['--time={}'.format(slurm_time)]
     else:
         time_option = []
     
