@@ -73,8 +73,8 @@ for n in range(args.log2nodes + 1):
         ]
         + time_option
         + [
-            "jobscript {} {} {} {} {}".format(args.script, args.nx, args.ny,
-                                              args.conda_path, args.conda_env)
+            "jobscript", args.script, str(args.nx), str(args.ny),
+            args.conda_path, args.conda_env
         ]
     )
 
