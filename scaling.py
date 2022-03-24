@@ -46,7 +46,7 @@ for n in range(args.log2nodes + 1):
     if args.scaling == "weak":
         ny = ny * ntasks
 
-    jobname = f"{args.scaling}-{args.script}-{args.nx}-{args.nx}-{ntasks}"
+    jobname = "{}-{}-{}-{}-{}".format(args.scaling, args.script, args.nx, args.nx, ntasks)
     
     if args.t1 != 0:
         if args.scaling == "weak":
