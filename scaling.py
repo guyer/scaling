@@ -22,12 +22,21 @@ parser.add_argument('--ny', type=int, default=100,
                     help='number of cells in y direction (default: 100)')
 parser.add_argument('--log2nodes', type=int, default=6,
                     help='maximum power of 2 for number of tasks (default: 6)')
-parser.add_argument('--serial_time', dest="t1", type=float, default=0,
+parser.add_argument('--serial-time', dest="t1", type=float, default=0,
                     help='time limit in seconds for a serial run (default: no limit)')
-parser.add_argument('--min_time', dest="t_min", type=float, default=0,
+parser.add_argument('--min-time', dest="t_min", type=float, default=0,
                     help='lower threshold in seconds for any run (default: no limit)')
-parser.add_argument('--parallel_efficiency', type=float, default=0.9,
+parser.add_argument('--parallel-efficiency', type=float, default=0.9,
                     help='assumed parallel efficiency (default: 90 %)')
+parser.add_argument('--conda-path', type=str, default="/working/guyer/mambaforge/bin/conda",
+                    help='''Path to conda installation (default: "/working/guyer/mambaforge/bin/conda").
+
+                    Per emails with reida and tnk10 on 2022-03-18:
+                    invoke conda in /tmp because of configuration/malefactor-induced
+                    performance issues on /working.
+                    ''')
+parser.add_argument('--conda-env', type=str, default="fipy3k",
+                    help='Conda environment to run in (default: "fipy3k")')
 
 args = parser.parse_args()
 
@@ -57,7 +66,7 @@ for n in range(args.log2nodes + 1):
         f"sbatch --partition={args.partition} --exclusive --job-name={jobname} "
         f"--ntasks={ntasks} --ntasks-per-core=2 {time_str} "
         f"--output={os.getcwd()}/results/{args.partition}/{jobname}.slurmout "
-        f"jobscript {args.script} {args.nx} {args.ny}"
+        f"jobscript {args.script} {args.nx} {args.ny} {args.conda_path} {args.conda_env}"
     )
   
     print(s)

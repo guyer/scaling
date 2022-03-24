@@ -1,16 +1,15 @@
 #!/bin/bash
 
-# Per emails with reida and tnk10 on 2022-03-18:
-# invoke conda in /tmp because of configuration/malefactor-induced
-# performance issues on /working
-eval "$(/tmp/guyer/mambaforge/bin/conda shell.bash hook)"
-conda activate fipy3k
-echo "Using $SLURM_NTASKS cores"
-echo `which conda`
-
 script=$1
 nx=$2
 ny=$3
+condapath = $4
+condaenv = $5
+
+eval "$(condapath shell.bash hook)"
+conda activate $condaenv
+echo "Using $SLURM_NTASKS cores"
+echo `which conda`
 
 OMP_NUM_THREADS=1 `which mpirun` -np $SLURM_NTASKS python $script \
   --nx=$nx --ny=$ny --steps=6 \
