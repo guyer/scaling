@@ -57,17 +57,26 @@ for n in range(args.log2nodes + 1):
         tN = round(max(tN, args.t_min))
             
         # format run time for sbatch as d-h:mm:ss
-        time_str = f"--time=\"{str(timedelta(seconds=tN)).replace(' day, ', '-')}\""
+        slurm_time = str(timedelta(seconds=tN)).replace(" day, ", "-")
+        time_option = ['--time="{}"'.format(slurm_time)]
     else:
-        time_str = ""    
+        time_option = []
     
 
-    s = (
-        f"sbatch --partition={args.partition} --exclusive --job-name={jobname} "
-        f"--ntasks={ntasks} --ntasks-per-core=2 {time_str} "
-        f"--output={os.getcwd()}/results/{args.partition}/{jobname}.slurmout "
-        f"jobscript {args.script} {args.nx} {args.ny} {args.conda_path} {args.conda_env}"
+    run_args = (
+        [
+            "sbatch", "--partition={}".format(args.partition), "--exclusive",
+            "--job-name={}".format(jobname),
+            "--ntasks={}".format(ntasks), "--ntasks-per-core=2",
+            "--output={}/results/{}/{}.slurmout".format(os.getcwd(),
+                                                        args.partition, jobname)
+        ]
+        + time_option
+        + [
+            "jobscript {} {} {} {} {}".format(args.script, args.nx, args.ny,
+                                              args.conda_path, args.conda_env)
+        ]
     )
-  
-    print(s)
-    subprocess.run(s, shell=True)
+
+    print(" ".join(run_args))
+    subprocess.run(run_args)
