@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
-from datetime import timedelta
 import os
-import re
 import subprocess
+
+from slurmutils.slurmtime import slurm2delta, delta2slurm, round_seconds, zero
 
 parser = argparse.ArgumentParser(description='Drive a set of scaling runs')
 parser.add_argument('script', type=str,
@@ -55,56 +55,8 @@ parser.add_argument('--conda-env', type=str, default="fipy3k",
 
 args = parser.parse_args()
 
-# slurm has two basic time formats
-# 1. days-hours(:minutes(:seconds)?)?, which always has days and hours
-# 2. (hours:)?(minutes(:seconds)?), which always has minutes
-
-daysRE = re.compile(r"(?P<days>\d+)-(?P<hours>2[0-3]|[01]?[0-9])"
-                    r"(:(?P<minutes>[0-5]\d)(:(?P<seconds>[0-5]\d))?)?")
-minsRE = re.compile(r"((?P<hours>2[0-3]|[01]?[0-9]):)*?"
-                    "((?P<minutes>((?<=:)[0-5]|(?<!:)\d*)\d)(:(?P<seconds>[0-5]\d))?)")
-
-def parse_time(time_str):
-    """Parse a time string into a timedelta object
-
-    Acceptable time formats include "minutes", "minutes:seconds",
-    "hours:minutes:seconds", "days-hours", "days-hours:minutes" and
-    "days-hours:minutes:seconds".
-
-    Modified from Peter's answer at https://stackoverflow.com/a/51916936
-
-    :param time_str: A string identifying a duration.  (eg. 2:13)
-    :return datetime.timedelta: A datetime.timedelta object
-    """
-    parts = daysRE.match(time_str)
-    if parts is None:
-        parts = minsRE.match(time_str)
-
-    err_str = ("Could not parse any time information from '{}'. "
-               "Examples of valid strings: "
-               "'2', '2:03', '1:02:03', '2-8', '2-8:05', '2-8:05:20'")
-    assert parts is not None, err_str.format(time_str)
-
-    time_params = {
-        name: float(param)
-        for name, param in parts.groupdict().items()
-        if param
-    }
-
-    return timedelta(**time_params)
-
-zero = timedelta(seconds=0)
-
-def round_seconds(delta):
-    """Round timedelta object to nearest second
-
-    More than 500 000 microseconds gets rounded up
-    """
-    return delta + timedelta(seconds=delta.microseconds // 500_000,
-                             microseconds=-delta.microseconds)
-
-t1 = parse_time(args.t1)
-t_min = parse_time(args.t_min)
+t1 = slurm2delta(args.t1)
+t_min = slurm2delta(args.t_min)
 
 for n in range(args.log2nodes + 1):
     ntasks = 2**n
@@ -128,8 +80,7 @@ for n in range(args.log2nodes + 1):
         tN = round_seconds(max(tN, t_min))
             
         # format run time for sbatch as d-h:mm:ss
-        slurm_time = str(tN).replace(" days, ", "-")
-        time_option = ['--time={}'.format(slurm_time)]
+        time_option = ['--time={}'.format(delta2slurm(tN))]
     
 
     run_args = (
