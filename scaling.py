@@ -13,16 +13,16 @@ parser.add_argument('--partition', dest='partition', type=str, required=True,
                     help='Request a specific partition for the resource allocation.')
 parser.add_argument('--strong', dest='scaling', action='store_const',
                     const="strong", default="strong",
-                    help='Perform strong scaling (fixed problem size) (default: "strong"')
+                    help='Perform strong scaling (fixed problem size) (default: "strong")')
 parser.add_argument('--weak', dest='scaling', action='store_const',
                     const="weak", default="strong",
-                    help='Perform weak scaling (variable problem size) (default: "strong"')
+                    help='Perform weak scaling (variable problem size) (default: "strong")')
 parser.add_argument('--nx', type=int, default=100,
-                    help='number of cells in x direction (default: 100)')
+                    help='Number of cells in x direction (default: 100)')
 parser.add_argument('--ny', type=int, default=100,
-                    help='number of cells in y direction (default: 100)')
+                    help='Number of cells in y direction (default: 100)')
 parser.add_argument('--log2nodes', type=int, default=6,
-                    help='maximum power of 2 for number of tasks (default: 6)')
+                    help='Maximum power of 2 for number of tasks (default: 6)')
 parser.add_argument('--serial-time', dest="t1", type=str, default="0",
                     help='''Total run time of a serial job allocation (default: "0").
 
@@ -37,12 +37,12 @@ parser.add_argument('--serial-time', dest="t1", type=str, default="0",
                     "days-hours:minutes:seconds".
                     ''')
 parser.add_argument('--min-time', dest="t_min", type=str, default="0",
-                    help='''lower time threshold for any run (default: "0")
+                    help='''Lower time threshold for any run (default: "0")
 
                     See `--serial-time` for allowed time formats.
                     ''')
 parser.add_argument('--parallel-efficiency', type=float, default=0.9,
-                    help='assumed parallel efficiency (default: 90 %)')
+                    help='Assumed parallel efficiency (default: 90 %%)')
 parser.add_argument('--conda-path', type=str, default="/working/guyer/mambaforge/bin/conda",
                     help='''Path to conda installation (default: "/working/guyer/mambaforge/bin/conda").
 
