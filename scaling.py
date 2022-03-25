@@ -3,6 +3,7 @@
 import argparse
 from datetime import timedelta
 import os
+import re
 import subprocess
 
 parser = argparse.ArgumentParser(description='Drive a set of scaling runs')
@@ -22,10 +23,24 @@ parser.add_argument('--ny', type=int, default=100,
                     help='number of cells in y direction (default: 100)')
 parser.add_argument('--log2nodes', type=int, default=6,
                     help='maximum power of 2 for number of tasks (default: 6)')
-parser.add_argument('--serial-time', dest="t1", type=float, default=0,
-                    help='time limit in seconds for a serial run (default: no limit)')
-parser.add_argument('--min-time', dest="t_min", type=float, default=0,
-                    help='lower threshold in seconds for any run (default: no limit)')
+parser.add_argument('--serial-time', dest="t1", type=str, default="0",
+                    help='''Total run time of a serial job allocation (default: "0").
+
+                    In concert with `--min-time`, `--parallel-efficiency`,
+                    the type of scaling, and the number of tasks, sets a
+                    limit on the total run time of each job allocation.
+
+                    A time limit of zero requests that no time limit be
+                    imposed.  Acceptable time formats include "minutes",
+                    "minutes:seconds", "hours:minutes:seconds",
+                    "days-hours", "days-hours:minutes" and
+                    "days-hours:minutes:seconds".
+                    ''')
+parser.add_argument('--min-time', dest="t_min", type=str, default="0",
+                    help='''lower time threshold for any run (default: "0")
+
+                    See `--serial-time` for allowed time formats.
+                    ''')
 parser.add_argument('--parallel-efficiency', type=float, default=0.9,
                     help='assumed parallel efficiency (default: 90 %)')
 parser.add_argument('--conda-path', type=str, default="/working/guyer/mambaforge/bin/conda",
@@ -40,6 +55,57 @@ parser.add_argument('--conda-env', type=str, default="fipy3k",
 
 args = parser.parse_args()
 
+# slurm has two basic time formats
+# 1. days-hours(:minutes(:seconds)?)?, which always has days and hours
+# 2. (hours:)?(minutes(:seconds)?), which always has minutes
+
+daysRE = re.compile(r"(?P<days>\d+)-(?P<hours>2[0-3]|[01]?[0-9])"
+                    r"(:(?P<minutes>[0-5]\d)(:(?P<seconds>[0-5]\d))?)?")
+minsRE = re.compile(r"((?P<hours>2[0-3]|[01]?[0-9]):)*?"
+                    "((?P<minutes>((?<=:)[0-5]|(?<!:)\d*)\d)(:(?P<seconds>[0-5]\d))?)")
+
+def parse_time(time_str):
+    """Parse a time string into a timedelta object
+
+    Acceptable time formats include "minutes", "minutes:seconds",
+    "hours:minutes:seconds", "days-hours", "days-hours:minutes" and
+    "days-hours:minutes:seconds".
+
+    Modified from Peter's answer at https://stackoverflow.com/a/51916936
+
+    :param time_str: A string identifying a duration.  (eg. 2:13)
+    :return datetime.timedelta: A datetime.timedelta object
+    """
+    parts = daysRE.match(time_str)
+    if parts is None:
+        parts = minsRE.match(time_str)
+
+    err_str = ("Could not parse any time information from '{}'. "
+               "Examples of valid strings: "
+               "'2', '2:03', '1:02:03', '2-8', '2-8:05', '2-8:05:20'")
+    assert parts is not None, err_str.format(time_str)
+
+    time_params = {
+        name: float(param)
+        for name, param in parts.groupdict().items()
+        if param
+    }
+
+    return timedelta(**time_params)
+
+zero = timedelta(seconds=0)
+
+def round_seconds(delta):
+    """Round timedelta object to nearest second
+
+    More than 500 000 microseconds gets rounded up
+    """
+    return delta + timedelta(seconds=delta.microseconds // 500_000,
+                             microseconds=-delta.microseconds)
+
+t1 = parse_time(args.t1)
+t_min = parse_time(args.t_min)
+
 for n in range(args.log2nodes + 1):
     ntasks = 2**n
 
@@ -48,19 +114,22 @@ for n in range(args.log2nodes + 1):
 
     jobname = "{}-{}-{}-{}-{}".format(args.scaling, args.script, args.nx, args.nx, ntasks)
     
-    if args.t1 != 0:
+    if t1 == zero:
+        time_option = []
+    else:
+        # calculate approximate job time based
+        # on serial time and scaling assumption
+        p = args.parallel_efficiency
         if args.scaling == "weak":
-            tN = args.t1 * ntasks / args.parallel_efficiency
+            tN = t1 * ntasks / (1 - p + p * ntasks)
         else:
-            tN = args.t1 / (args.parallel_efficiency * ntasks)
+            tN = t1 * (1 - p + p / ntasks)
         
-        tN = round(max(tN, args.t_min))
+        tN = round_seconds(max(tN, t_min))
             
         # format run time for sbatch as d-h:mm:ss
-        slurm_time = str(timedelta(seconds=tN)).replace(" day, ", "-")
+        slurm_time = str(tN).replace(" days, ", "-")
         time_option = ['--time={}'.format(slurm_time)]
-    else:
-        time_option = []
     
 
     run_args = (
