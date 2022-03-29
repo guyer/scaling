@@ -6,7 +6,7 @@ ny=$3
 condapath=$4
 condaenv=$5
 
-eval "$(condapath shell.bash hook)"
+eval "$($condapath shell.bash hook)"
 conda activate $condaenv
 echo "Using $SLURM_NTASKS cores"
 echo `which conda`
